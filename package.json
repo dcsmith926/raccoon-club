@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "build-server": "webpack --config webpack.server.js",
-    "watch": "webpack -w --config webpack.client.js",
+    "build-client": "webpack --config webpack.client.js",
+    "watch-server": "webpack -w --config webpack.server.js",
+    "watch-client": "webpack -w --config webpack.client.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Doug Smith",

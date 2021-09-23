@@ -3,29 +3,57 @@ import { UserSettings } from './UserSettings';
 
 export enum ActionType {
     ASSIGN_USERNAME = 'ASSIGN_USERNAME',
+    DRAW_POINT = 'DRAW_POINT',
+    DRAW_LINE = 'DRAW_LINE',
     DRAW_PATH = 'DRAW_PATH',
     MOUSE_MOVE = 'MOUSE_MOVE',
 }
 
-export interface AssignUsernameAction {
+export interface Action {
+    type: ActionType,
+    payload: any,
+}
+
+export interface AssignUsernameAction extends Action {
     type: ActionType.ASSIGN_USERNAME,
-    username: string,
+    payload: {
+        username: string,
+    },
 }
 
-export interface DrawPathAction {
+export interface DrawPointAction extends Action {
+    type: ActionType.DRAW_POINT,
+    payload: {
+        user: string,
+        settings: UserSettings,
+        point: Point,
+    }
+}
+
+export interface DrawLineAction extends Action {
+    type: ActionType.DRAW_LINE,
+    payload: {
+        user: string,
+        settings: UserSettings,
+        start: Point,
+        end: Point,
+    }
+}
+
+export interface DrawPathAction extends Action {
     type: ActionType.DRAW_PATH,
-    user: string,
-    settings: UserSettings,
-    path: Point[],
+    payload: {
+        user: string,
+        settings: UserSettings,
+        path: Point[],
+    }
 }
 
-export interface MouseMoveAction {
+export interface MouseMoveAction extends Action {
     type: ActionType.MOUSE_MOVE,
-    user: string,
-    settings: UserSettings,
-    point: Point,
+    payload: {
+        user: string,
+        settings: UserSettings,
+        point: Point,
+    }
 }
-
-export type Action = AssignUsernameAction
-                   | DrawPathAction
-                   | MouseMoveAction;

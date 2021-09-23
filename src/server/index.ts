@@ -1,8 +1,14 @@
 import http from 'http';
 import express from 'express';
 import { Server } from 'socket.io';
-import { ActionType, DrawPathAction, MouseMoveAction } from '../common/actions';
-import { usernames } from './usernames';
+import {
+    ActionType,
+    DrawPointAction,
+    DrawLineAction,
+    DrawPathAction,
+    MouseMoveAction,
+} from '../common/actions';
+import { retrieveUsername, returnUsername } from './usernames';
 
 const PORT = 8002;
 
@@ -12,36 +18,26 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
-const availableNames: Set<string> = new Set();
-for (let username of usernames) {
-    availableNames.add(username);
-}
-
-function randomChoice<T>(choices: Array<T>): T {
-    return choices[Math.floor(Math.random() * choices.length)];
-}
-
 io.on('connection', socket => {
     
     console.log('user connected');
 
-    // TODO: better handling of this case lol
-    if (availableNames.size === 0) {
-        console.log('no available usernames');
-        throw 'uh-oh';
-    }
-
-    // check pennsylvania-racccoon first, so first connection receives it
-    let username = 'pennsylvania-raccoon';
-    if (!availableNames.has(username)) {
-        username = randomChoice([...availableNames.values()]);
-    }
+    const username = retrieveUsername();
 
     console.log(`assigning username: ${username}`);
-    availableNames.delete(username);
     socket.emit(ActionType.ASSIGN_USERNAME, {
         type: ActionType.ASSIGN_USERNAME,
-        username,
+        payload: {
+            username,
+        },
+    });
+
+    socket.on(ActionType.DRAW_POINT, (action: DrawPointAction) => {
+        socket.broadcast.emit(ActionType.DRAW_POINT, action);
+    });
+
+    socket.on(ActionType.DRAW_LINE, (action: DrawLineAction) => {
+        socket.broadcast.emit(ActionType.DRAW_LINE, action);
     });
 
     socket.on(ActionType.DRAW_PATH, (action: DrawPathAction) => {
@@ -54,7 +50,7 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         console.log(`User: ${username} disconnected`);
-        availableNames.add(username);
+        returnUsername(username);
     });
 });
 
