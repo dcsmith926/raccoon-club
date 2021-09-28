@@ -1,6 +1,7 @@
 import io, { Socket } from 'socket.io-client';
 import { Point } from '../common/Point';
-import { UserSettings, defaultSettings, applySettings } from '../common/UserSettings';
+import { UserSettings, defaultSettings } from '../common/UserSettings';
+import { CanvasManager } from '../common/CanvasManager';
 import {
     Action,
     ActionType,
@@ -11,7 +12,7 @@ import {
     MouseMoveAction,
 } from '../common/actions';
 
-const MOUSEMOVE_UPDATE_INTERVAL = 500;
+const MOUSEMOVE_UPDATE_INTERVAL = 400;
 
 window.onload = init;
 
@@ -22,7 +23,8 @@ async function init() {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    const settings: UserSettings = {...defaultSettings};
+    const cm = new CanvasManager(ctx);
+    const settings: UserSettings = defaultSettings;
 
     const socket = io();
 
@@ -51,53 +53,6 @@ async function init() {
         return point;
     };
 
-    const drawLine = (start: Point, end: Point, settings: UserSettings) => {
-
-        applySettings(ctx, settings);
-
-        ctx.beginPath();
-        ctx.moveTo(start.x, start.y);
-        ctx.lineTo(end.x, end.y);
-        ctx.stroke();
-    };
-
-    const drawPoint = (point: Point, settings: UserSettings) => {
-
-        applySettings(ctx, settings);
-
-        ctx.beginPath();
-        ctx.ellipse(point.x, point.y, 1, 1, 0, 0, 2 * Math.PI);
-        ctx.stroke();
-        ctx.fill();
-    };
-
-    const drawPath = (path: Point[], settings: UserSettings) => {
-
-        let point = path.shift();
-
-        if (point) {
-
-            if (path.length === 0) {
-                drawPoint(point, settings);
-            }
-            else {
-
-                applySettings(ctx, settings);
-
-                ctx.beginPath();
-                ctx.moveTo(point.x, point.y);
-
-                point = path.shift();
-                while (point) {
-                    ctx.lineTo(point.x, point.y);
-                    point = path.shift();
-                }
-
-                ctx.stroke();
-            }
-        }
-    };
-
     const onDrawStart = (point: Point) => {
         isDrawing = true;
         path = [point];
@@ -106,7 +61,7 @@ async function init() {
     const onDrawUpdate = (point: Point) => {
         if (isDrawing) {
             const prevPoint = path[path.length - 1];
-            drawLine(prevPoint, point, settings);
+            cm.drawLine(prevPoint, point, settings);
             emitAction(socket, {
                 type: ActionType.DRAW_LINE,
                 payload: {
@@ -126,7 +81,7 @@ async function init() {
 
         // only one point: draw an ellipse as we haven't drawn anything yet
         if (path.length === 1) {
-            drawPoint(point, settings);
+            cm.drawPoint(point, settings);
             emitAction(socket, {
                 type: ActionType.DRAW_POINT,
                 payload: {
@@ -191,26 +146,23 @@ async function init() {
     });
 
     socket.on(ActionType.DRAW_POINT, (action: DrawPointAction) => {
-        drawPoint(action.payload.point, action.payload.settings);
+        cm.drawPoint(action.payload.point, action.payload.settings);
     });
 
     socket.on(ActionType.DRAW_LINE, (action: DrawLineAction) => {
-        drawLine(action.payload.start, action.payload.end, action.payload.settings);
+        cm.drawLine(action.payload.start, action.payload.end, action.payload.settings);
     });
 
     socket.on(ActionType.DRAW_PATH, (action: DrawPathAction) => {
-        drawPath(action.payload.path, action.payload.settings);
+        cm.drawPath(action.payload.path, action.payload.settings);
     });
 
     socket.on(ActionType.MOUSE_MOVE, (action: MouseMoveAction) => {
-        console.log(`User ${action.payload.user} moved mouse to ${action.payload.point}`);
+        const { point } = action.payload;
+        console.log(`User ${action.payload.user} moved mouse to (${point.x}, ${point.y})`);
     });
 
-    clear(ctx);
-}
-
-function clear(ctx: CanvasRenderingContext2D) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    cm.clear();
 }
 
 function emitAction(socket: Socket, action: Action) {
