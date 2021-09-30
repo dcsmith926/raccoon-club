@@ -1,0 +1,1 @@
+export const IMG_FN = 'image.png';

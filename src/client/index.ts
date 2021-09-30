@@ -2,6 +2,7 @@ import io, { Socket } from 'socket.io-client';
 import { Point } from '../common/Point';
 import { UserSettings, defaultSettings } from '../common/UserSettings';
 import { CanvasManager } from '../common/CanvasManager';
+import { IMG_FN } from '../common/constants';
 import {
     Action,
     ActionType,
@@ -28,8 +29,20 @@ async function init() {
 
     const socket = io();
 
-    // maybe there's a cleaner way to write this using async/await..??
-    const waitForUsername = (): Promise<string> => {
+    // there's probably a cleaner way to write this kinda stuff using async/await..??
+    // but this works for now and is clear
+    const loadImage = (): Promise<boolean> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = IMG_FN;
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0);
+                resolve(true);
+            };
+        });
+    };
+
+    const getUsername = (): Promise<string> => {
         return new Promise((resolve, reject) => {
             socket.on(ActionType.ASSIGN_USERNAME, (action: AssignUsernameAction) => {
                 resolve(action.payload.username);
@@ -37,7 +50,8 @@ async function init() {
         });
     };
 
-    const username = await waitForUsername();
+    const imgLoaded = await loadImage();
+    const username = await getUsername();
 
     spinner.style.display = 'none';
     top.innerHTML = `you are ${username}`;
@@ -161,8 +175,6 @@ async function init() {
         const { point } = action.payload;
         console.log(`User ${action.payload.user} moved mouse to (${point.x}, ${point.y})`);
     });
-
-    cm.clear();
 }
 
 function emitAction(socket: Socket, action: Action) {

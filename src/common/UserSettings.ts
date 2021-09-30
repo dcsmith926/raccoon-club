@@ -6,7 +6,7 @@ export interface UserSettings {
 }
 
 export const defaultSettings: UserSettings = {
-    lineWidth: 10,
+    lineWidth: 5,
     lineJoin: 'round',
     lineCap: 'round',
     strokeStyle: 'black',
