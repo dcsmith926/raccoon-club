@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import http from 'http';
 import express from 'express';
 import { Server } from 'socket.io';
@@ -18,8 +16,6 @@ import { retrieveUsername, returnUsername } from './usernames';
 const PORT = 8002;
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 800;
-const IMG_PATH = path.resolve(__dirname, 'public', IMG_FN);
-const IMG_UPD_INTERVAL = 10000;
 
 const app = express();
 const server = http.createServer(app);
@@ -31,27 +27,24 @@ const canvas = createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
 const ctx = canvas.getContext('2d');
 const cm = new CanvasManager(ctx);
 
-let imgUpdated = true;
-
-const writeImageFile = () => {
-
-    if (imgUpdated) {
-
-        const outStream = fs.createWriteStream(IMG_PATH);
-        const inStream = canvas.createPNGStream({
-            compressionLevel: 9,
-        });
-
-        inStream.pipe(outStream);
-        outStream.on('finish', () => console.log(`Wrote canvas data to ${IMG_PATH}`));
-
-        imgUpdated = false;
-    }
-};
-
 cm.clear();
-writeImageFile();
-setInterval(writeImageFile, IMG_UPD_INTERVAL);
+
+app.get(`/${IMG_FN}`, (req, res) => {
+
+    /**
+     * TODO:
+     * - should we set any other headers/properties
+     *   on the res object or is this good enough?
+     */
+
+    res.setHeader('Cache-Control', 'no-store');
+    
+    const pngStream = canvas.createPNGStream({
+        compressionLevel: 9,
+    });
+
+    pngStream.pipe(res);
+});
 
 io.on('connection', socket => {
     
@@ -68,32 +61,20 @@ io.on('connection', socket => {
     });
 
     socket.on(ActionType.DRAW_POINT, (action: DrawPointAction) => {
-
         const { point, settings } = action.payload;
-
         cm.drawPoint(point, settings);
-        imgUpdated = true;
-
         socket.broadcast.emit(ActionType.DRAW_POINT, action);
     });
 
     socket.on(ActionType.DRAW_LINE, (action: DrawLineAction) => {
-
         const { start, end, settings } = action.payload;
-
         cm.drawLine(start, end, settings);
-        imgUpdated = true;
-
         socket.broadcast.emit(ActionType.DRAW_LINE, action);
     });
 
     socket.on(ActionType.DRAW_PATH, (action: DrawPathAction) => {
-
         const { path, settings } = action.payload;
-
         cm.drawPath(path, settings);
-        imgUpdated = true;
-
         socket.broadcast.emit(ActionType.DRAW_PATH, action);
     });
 
