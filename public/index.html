@@ -42,10 +42,32 @@
                 color: purple
             }
 
-            #canvas-img {
-                position: absolute;
-                top: 0;
-                left: -800px;
+            #main {
+                display: flex;
+                gap: 20px;
+            }
+
+            #toolbar {
+                width: 110px;
+                margin: 0;
+                padding: 5px;
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .toolbar-item {
+                width: 100px;
+                height: 100px;
+            }
+
+            #colorpicker {
+                display: none;
+                position: relative;
+                top: 100px;
+                left: 0;
+                z-index: 100;
+                box-shadow: 2px 2px 2px;
             }
 
         </style>
@@ -53,20 +75,8 @@
     </head>
 
     <body>
-
-        <div id="loading-spinner"></div>
-
-        <div id="container">
-            <div id="top"></div>
-            <canvas id="canvas" width="800" height="800">
-                uh-oh! yr browser doesn't support HTML5 <code>canvas</code> element :(
-            </canvas>
-        </div>
-
-        <img src="image.png" id="canvas-img">
-
+        <div id="root-of-all-raccoons"></div>
         <script src="app.js"></script>
-
     </body>
 
 </html>

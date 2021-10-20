@@ -27,7 +27,7 @@ export interface DrawPointAction extends Action {
         user: string,
         settings: UserSettings,
         point: Point,
-    }
+    },
 }
 
 export interface DrawLineAction extends Action {
@@ -37,7 +37,7 @@ export interface DrawLineAction extends Action {
         settings: UserSettings,
         start: Point,
         end: Point,
-    }
+    },
 }
 
 export interface DrawPathAction extends Action {
@@ -46,7 +46,7 @@ export interface DrawPathAction extends Action {
         user: string,
         settings: UserSettings,
         path: Point[],
-    }
+    },
 }
 
 export interface MouseMoveAction extends Action {
@@ -55,5 +55,5 @@ export interface MouseMoveAction extends Action {
         user: string,
         settings: UserSettings,
         point: Point,
-    }
+    },
 }

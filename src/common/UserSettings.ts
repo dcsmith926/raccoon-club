@@ -3,6 +3,7 @@ export interface UserSettings {
     lineJoin: CanvasLineJoin,
     lineCap: CanvasLineCap,
     strokeStyle: string,
+    fillStyle: string,
 }
 
 export const defaultSettings: UserSettings = {
@@ -10,4 +11,5 @@ export const defaultSettings: UserSettings = {
     lineJoin: 'round',
     lineCap: 'round',
     strokeStyle: 'black',
+    fillStyle: 'black',
 };

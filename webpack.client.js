@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-    entry: path.resolve(__dirname, 'src/client/index.ts'),
+    entry: path.resolve(__dirname, 'src/client/index.tsx'),
     output: {
         filename: 'app.js',
         path: path.resolve(__dirname, 'public'),
@@ -9,13 +9,13 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.ts$/,
+                test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
         ],
     },
     resolve: {
-        extensions: ['.ts', '.js'],
+        extensions: ['.tsx', '.ts', '.jsx', '.js'],
     },
 };
