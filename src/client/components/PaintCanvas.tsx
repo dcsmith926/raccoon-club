@@ -1,5 +1,6 @@
 import { useEffect, useRef, useContext } from 'react';
 import { SocketContext, emitAction } from '../socket';
+import { SettingsContext } from '../settings';
 import {
     ActionType,
     DrawLineAction,
@@ -8,7 +9,6 @@ import {
     MouseMoveAction,
 } from '../../common/actions';
 import { MOUSEMOVE_UPDATE_INTERVAL } from '../../common/constants';
-import { UserSettings } from '../../common/UserSettings';
 import { CanvasManager } from '../../common/CanvasManager';
 import { Point } from '../../common/Point';
 
@@ -16,13 +16,13 @@ interface PaintCanvasProps {
     width: number,
     height: number,
     img: HTMLImageElement,
-    settings: UserSettings,
     username: string,
 }
 
-export default function PaintCanvas({width, height, img, settings, username}: PaintCanvasProps) {
+export default function PaintCanvas({width, height, img, username}: PaintCanvasProps) {
 
     const socket = useContext(SocketContext);
+    const settings = useContext(SettingsContext);
 
     const ref = useRef<HTMLCanvasElement>(null);
 
@@ -155,7 +155,7 @@ export default function PaintCanvas({width, height, img, settings, username}: Pa
                 console.log(`User ${action.payload.user} moved mouse to (${point.x}, ${point.y})`);
             });
         }
-    });
+    }, []);
 
     return (
         <canvas ref={ref} width={width} height={height} />

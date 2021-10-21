@@ -10,6 +10,6 @@ export const defaultSettings: UserSettings = {
     lineWidth: 5,
     lineJoin: 'round',
     lineCap: 'round',
-    strokeStyle: 'black',
-    fillStyle: 'black',
+    strokeStyle: 'pink',
+    fillStyle: 'pink',
 };

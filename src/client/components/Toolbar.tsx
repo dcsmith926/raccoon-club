@@ -1,6 +1,6 @@
-import React, { MouseEventHandler, useRef, useState } from 'react';
+import React, { MouseEventHandler, useRef, useState, useContext, } from 'react';
 import { ColorChangeHandler, TwitterPicker } from 'react-color';
-import { UserSettings } from '../../common/UserSettings';
+import { SettingsContext } from '../settings';
 
 interface PropsWithPossibleChildren {
     children: any,
@@ -35,18 +35,13 @@ function ToolbarItem({ children }: PropsWithPossibleChildren) {
     )
 }
 
-interface ToolbarProps {
-    settings: UserSettings,
-    setSettings: React.Dispatch<React.SetStateAction<UserSettings>>,
-}
-export default function Toolbar({ settings, setSettings }: ToolbarProps) {
+export default function Toolbar() {
+
+    const settings = useContext(SettingsContext);
 
     const onChangeColor: ColorChangeHandler = (color) => {
-        setSettings({
-            ...settings,
-            strokeStyle: color.hex,
-            fillStyle: color.hex,
-        });
+        settings.strokeStyle = color.hex;
+        settings.fillStyle = color.hex;
     };
 
     return (
