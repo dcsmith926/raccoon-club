@@ -11,6 +11,7 @@ export class CanvasManager {
         this.ctx.lineJoin = settings.lineJoin;
         this.ctx.lineCap = settings.lineCap;
         this.ctx.strokeStyle = settings.strokeStyle;
+        this.ctx.fillStyle = settings.fillStyle;
     }
 
     clear() {

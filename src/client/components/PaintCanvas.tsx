@@ -11,6 +11,7 @@ import {
 import { MOUSEMOVE_UPDATE_INTERVAL } from '../../common/constants';
 import { CanvasManager } from '../../common/CanvasManager';
 import { Point } from '../../common/Point';
+import useMousePosition from '../hooks/useMousePosition';
 
 interface PaintCanvasProps {
     width: number,
@@ -26,6 +27,10 @@ export default function PaintCanvas({width, height, img, username}: PaintCanvasP
 
     const ref = useRef<HTMLCanvasElement>(null);
 
+    let mousePos = useMousePosition();
+
+    let mouseMoveIntervalId: number|null = null;
+
     useEffect(() => {
 
         if (ref.current) {
@@ -36,7 +41,6 @@ export default function PaintCanvas({width, height, img, username}: PaintCanvasP
 
             const cm = new CanvasManager(ctx);
 
-            let lastMouseMoveUpdate = Date.now();
             let isDrawing = false;
             let path: Point[] = [];
 
@@ -56,14 +60,6 @@ export default function PaintCanvas({width, height, img, username}: PaintCanvasP
                 if (isDrawing) {
                     const prevPoint = path[path.length - 1];
                     cm.drawLine(prevPoint, point, settings);
-                    emitAction(socket, {
-                        type: ActionType.DRAW_LINE,
-                        payload: {
-                            settings,
-                            start: prevPoint,
-                            end: point,
-                        },
-                    })
                     path.push(point);
                 }
             };
@@ -72,7 +68,8 @@ export default function PaintCanvas({width, height, img, username}: PaintCanvasP
 
                 isDrawing = false;
 
-                // only one point: draw an ellipse as we haven't drawn anything yet
+                // only one point: draw a point (i.e. ellipse) as we haven't drawn anything yet
+                // and send draw point action to peers
                 if (path.length === 1) {
                     cm.drawPoint(point, settings);
                     emitAction(socket, {
@@ -84,17 +81,20 @@ export default function PaintCanvas({width, height, img, username}: PaintCanvasP
                         },
                     });
                 }
+                // we draw a path -- send it to our peers
+                else if (path.length > 1) {
+                    emitAction(socket, {
+                        type: ActionType.DRAW_PATH,
+                        payload: {
+                            user: username,
+                            settings,
+                            path,
+                        },
+                    });
+                }
+            };
 
-                /*
-                emitAction(socket, {
-                    type: AT.DRAW_PATH,
-                    user: username,
-                    settings,
-                    path,
-                });
-                */
-            }
-
+            // set event listeners on the canvas
             canvas.addEventListener('mousedown', (e: MouseEvent) => {
                 if (!isDrawing) {
                     onDrawStart(translateCanvas(new Point(e.clientX, e.clientY)));
@@ -102,27 +102,9 @@ export default function PaintCanvas({width, height, img, username}: PaintCanvasP
             });
 
             canvas.addEventListener('mousemove', (e: MouseEvent) => {
-
                 const point = translateCanvas(new Point(e.clientX, e.clientY));
-
                 if (isDrawing) {
                     onDrawUpdate(point);
-                }
-
-                const now = Date.now();
-
-                if (now - lastMouseMoveUpdate > MOUSEMOVE_UPDATE_INTERVAL) {
-
-                    lastMouseMoveUpdate = now;
-
-                    emitAction(socket, {
-                        type: ActionType.MOUSE_MOVE,
-                        payload: {
-                            user: username,
-                            settings,
-                            point,
-                        },
-                    });
                 }
             });
 
@@ -138,6 +120,7 @@ export default function PaintCanvas({width, height, img, username}: PaintCanvasP
                 }
             });
 
+            // when we receive draw actions from peers, draw the necessary stuff
             socket.on(ActionType.DRAW_POINT, (action: DrawPointAction) => {
                 cm.drawPoint(action.payload.point, action.payload.settings);
             });
@@ -150,10 +133,32 @@ export default function PaintCanvas({width, height, img, username}: PaintCanvasP
                 cm.drawPath(action.payload.path, action.payload.settings);
             });
 
+            // when we receive mouse move action from peers
+            // TODO: display the peer's icon at the location
             socket.on(ActionType.MOUSE_MOVE, (action: MouseMoveAction) => {
                 const { point } = action.payload;
                 console.log(`User ${action.payload.user} moved mouse to (${point.x}, ${point.y})`);
             });
+
+            // periodically send updates of our mouse position so we can watch each other moving around
+            mouseMoveIntervalId = window.setInterval(() => {
+                emitAction(socket, {
+                    type: ActionType.MOUSE_MOVE,
+                    payload: {
+                        user: username,
+                        settings,
+                        point: translateCanvas(mousePos),
+                    },
+                });
+            }, MOUSEMOVE_UPDATE_INTERVAL);
+        }
+
+        // returning our cleanup function from useEffect
+        return () => {
+            // we have to clear this interval if it's been set
+            if (mouseMoveIntervalId !== null) {
+                window.clearInterval(mouseMoveIntervalId);
+            }
         }
     }, []);
 

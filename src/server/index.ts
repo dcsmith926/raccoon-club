@@ -74,7 +74,7 @@ io.on('connection', socket => {
 
     socket.on(ActionType.DRAW_PATH, (action: DrawPathAction) => {
         const { path, settings } = action.payload;
-        cm.drawPath(path, settings);
+        cm.drawPath([...path], settings);
         socket.broadcast.emit(ActionType.DRAW_PATH, action);
     });
 

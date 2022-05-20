@@ -8,26 +8,21 @@
 
         <title>:)</title>
 
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
         <style>
 
             body {
                 margin: 0;
                 padding: 0;
+                font-family: 'VT323', monospace;
             }
 
             canvas {
                 border: 1px solid black;
-            }
-
-            #loading-spinner {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                z-index: 1000;
-                color: black;
-                opacity: 0.4;
+                background: white;
             }
 
             #container {
@@ -37,7 +32,6 @@
 
             #top {
                 margin-bottom: 5px;
-                font-family: Georgia, 'Times New Roman', Times, serif;
                 font-size: 2rem;
                 color: purple
             }
@@ -45,29 +39,6 @@
             #main {
                 display: flex;
                 gap: 20px;
-            }
-
-            #toolbar {
-                width: 110px;
-                margin: 0;
-                padding: 5px;
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-            }
-
-            .toolbar-item {
-                width: 100px;
-                height: 100px;
-            }
-
-            #colorpicker {
-                display: none;
-                position: relative;
-                top: 100px;
-                left: 0;
-                z-index: 100;
-                box-shadow: 2px 2px 2px;
             }
 
         </style>
